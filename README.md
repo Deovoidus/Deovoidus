@@ -1,0 +1,7 @@
+- @Deovoidus1 on discord
+- Bug bounty hunter
+- Virus checker
+- Femboy
+- Only way of contact to me is my discord
+- He/him
+- fuck you
