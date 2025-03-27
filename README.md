@@ -1,5 +1,1 @@
-- @Deovoidus1 on discord
-- Macro/Auto clicker maker
-- Only way of contact to me is my discord
-- He/him
-- I want to do cyber security when i'm in college
+[![trophy](https://github-profile-trophy.vercel.app/?username=Deovoidus&theme=onedark)](https://github.com/ryo-ma/github-profile-trophy)
