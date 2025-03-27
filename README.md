@@ -1,7 +1,5 @@
 - @Deovoidus1 on discord
-- Bug bounty hunter
-- Virus checker
-- Femboy
+- Macro/Auto clicker maker
 - Only way of contact to me is my discord
 - He/him
-- fuck you
+- I want to do cyber security when i'm in college
