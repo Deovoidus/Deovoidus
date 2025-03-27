@@ -7,29 +7,41 @@ import keyboard
 import json
 import os
 
+
 class AutoClicker:
+    SETTINGS_FILE = "auto_clicker_settings.json"
+    DEFAULT_INTERVAL_MS = 100
+    DEFAULT_KEYBIND = 'F6'
+    DEFAULT_CLICK_TYPE = 'left'
+    DEFAULT_CLICK_MODE = 'single'
+    DEFAULT_COORDINATES = False
+    DEFAULT_UNTIL_STOPPED = True
+    DEFAULT_SPECIFIC_CLICKS = 10
+    DEFAULT_ALWAYS_ON_TOP = False
+    DEFAULT_BUTTON_WIDTH = 20
+    DEFAULT_BUTTON_HEIGHT = 2
+
     def __init__(self, root):
         self.root = root
         self.root.title("Deo Clicker")
-        self.interval_ms = tk.IntVar(value=100)
+        
+        self.interval_ms = tk.IntVar(value=self.DEFAULT_INTERVAL_MS)
         self.interval_s = tk.IntVar(value=0)
         self.interval_m = tk.IntVar(value=0)
         self.interval_h = tk.IntVar(value=0)
-        self.keybind = tk.StringVar(value='F6')
-        self.click_type = tk.StringVar(value='left')
-        self.click_mode = tk.StringVar(value='single')
-        self.click_coordinates = tk.BooleanVar(value=False)
+        self.keybind = tk.StringVar(value=self.DEFAULT_KEYBIND)
+        self.click_type = tk.StringVar(value=self.DEFAULT_CLICK_TYPE)
+        self.click_mode = tk.StringVar(value=self.DEFAULT_CLICK_MODE)
+        self.click_coordinates = tk.BooleanVar(value=self.DEFAULT_COORDINATES)
         self.coordinates = []
-        self.click_until_stopped = tk.BooleanVar(value=True)
-        self.specific_clicks = tk.IntVar(value=10)
-        self.always_on_top = tk.BooleanVar(value=False)
-        self.button_width = tk.IntVar(value=20)
-        self.button_height = tk.IntVar(value=2)
+        self.click_until_stopped = tk.BooleanVar(value=self.DEFAULT_UNTIL_STOPPED)
+        self.specific_clicks = tk.IntVar(value=self.DEFAULT_SPECIFIC_CLICKS)
+        self.always_on_top = tk.BooleanVar(value=self.DEFAULT_ALWAYS_ON_TOP)
+        self.button_width = tk.IntVar(value=self.DEFAULT_BUTTON_WIDTH)
+        self.button_height = tk.IntVar(value=self.DEFAULT_BUTTON_HEIGHT)
         self.running = False
 
-        self.settings_file = "auto_clicker_settings.json"
         self.load_settings()
-
         self.create_widgets()
         self.setup_hotkeys()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -42,66 +54,76 @@ class AutoClicker:
         # Interval label and input
         interval_frame = ttk.LabelFrame(main_frame, text="Interval Between Clicks", padding="10")
         interval_frame.grid(column=0, row=0, padx=10, pady=10, sticky=(tk.W, tk.E))
-        ttk.Label(interval_frame, text="Hours:").grid(column=0, row=0, padx=5, pady=5)
-        ttk.Entry(interval_frame, textvariable=self.interval_h, width=5).grid(column=1, row=0, padx=5, pady=5)
-        ttk.Label(interval_frame, text="Minutes:").grid(column=2, row=0, padx=5, pady=5)
-        ttk.Entry(interval_frame, textvariable=self.interval_m, width=5).grid(column=3, row=0, padx=5, pady=5)
-        ttk.Label(interval_frame, text="Seconds:").grid(column=4, row=0, padx=5, pady=5)
-        ttk.Entry(interval_frame, textvariable=self.interval_s, width=5).grid(column=5, row=0, padx=5, pady=5)
-        ttk.Label(interval_frame, text="Milliseconds:").grid(column=6, row=0, padx=5, pady=5)
-        ttk.Entry(interval_frame, textvariable=self.interval_ms, width=5).grid(column=7, row=0, padx=5, pady=5)
+        self.create_interval_widgets(interval_frame)
 
         # Mouse options
         mouse_options_frame = ttk.LabelFrame(main_frame, text="Mouse Options", padding="10")
         mouse_options_frame.grid(column=0, row=1, padx=10, pady=10, sticky=(tk.W, tk.E))
+        self.create_mouse_options_widgets(mouse_options_frame)
 
-        click_type_frame = ttk.Frame(mouse_options_frame)
+        # Coordinates
+        coordinates_frame = ttk.LabelFrame(main_frame, text="Coordinates", padding="10")
+        coordinates_frame.grid(column=0, row=2, padx=10, pady=10, sticky=(tk.W, tk.E))
+        self.create_coordinates_widgets(coordinates_frame)
+
+        # Buttons
+        button_frame = ttk.Frame(main_frame, padding="10")
+        button_frame.grid(column=0, row=3, padx=10, pady=10, sticky=(tk.W, tk.E))
+        self.create_button_widgets(button_frame)
+
+    def create_interval_widgets(self, frame):
+        ttk.Label(frame, text="Hours:").grid(column=0, row=0, padx=5, pady=5)
+        ttk.Entry(frame, textvariable=self.interval_h, width=5).grid(column=1, row=0, padx=5, pady=5)
+        ttk.Label(frame, text="Minutes:").grid(column=2, row=0, padx=5, pady=5)
+        ttk.Entry(frame, textvariable=self.interval_m, width=5).grid(column=3, row=0, padx=5, pady=5)
+        ttk.Label(frame, text="Seconds:").grid(column=4, row=0, padx=5, pady=5)
+        ttk.Entry(frame, textvariable=self.interval_s, width=5).grid(column=5, row=0, padx=5, pady=5)
+        ttk.Label(frame, text="Milliseconds:").grid(column=6, row=0, padx=5, pady=5)
+        ttk.Entry(frame, textvariable=self.interval_ms, width=5).grid(column=7, row=0, padx=5, pady=5)
+
+    def create_mouse_options_widgets(self, frame):
+        click_type_frame = ttk.Frame(frame)
         click_type_frame.grid(column=0, row=0, padx=5, pady=5)
         ttk.Label(click_type_frame, text="Click Type:").grid(column=0, row=0, padx=10, pady=5, sticky=tk.W)
         click_type_menu = ttk.OptionMenu(click_type_frame, self.click_type, 'left', 'left', 'right')
         click_type_menu.grid(column=1, row=0, padx=10, pady=5, sticky=tk.W)
 
-        click_mode_frame = ttk.Frame(mouse_options_frame)
+        click_mode_frame = ttk.Frame(frame)
         click_mode_frame.grid(column=1, row=0, padx=5, pady=5)
         ttk.Label(click_mode_frame, text="Click Mode:").grid(column=0, row=0, padx=10, pady=5, sticky=tk.W)
         click_mode_menu = ttk.OptionMenu(click_mode_frame, self.click_mode, 'single', 'single', 'double')
         click_mode_menu.grid(column=1, row=0, padx=10, pady=5, sticky=tk.W)
 
-        ttk.Radiobutton(mouse_options_frame, text="Until Stopped", variable=self.click_until_stopped, value=True).grid(column=0, row=1, padx=5, pady=5)
-        ttk.Radiobutton(mouse_options_frame, text="Specific Number of Clicks", variable=self.click_until_stopped, value=False).grid(column=1, row=1, padx=5, pady=5)
-        ttk.Entry(mouse_options_frame, textvariable=self.specific_clicks, width=5).grid(column=2, row=1, padx=5, pady=5)
+        ttk.Radiobutton(frame, text="Until Stopped", variable=self.click_until_stopped, value=True).grid(column=0, row=1, padx=5, pady=5)
+        ttk.Radiobutton(frame, text="Specific Number of Clicks", variable=self.click_until_stopped, value=False).grid(column=1, row=1, padx=5, pady=5)
+        ttk.Entry(frame, textvariable=self.specific_clicks, width=5).grid(column=2, row=1, padx=5, pady=5)
 
-        # Coordinates
-        coordinates_frame = ttk.LabelFrame(main_frame, text="Coordinates", padding="10")
-        coordinates_frame.grid(column=0, row=2, padx=10, pady=10, sticky=(tk.W, tk.E))
-        ttk.Checkbutton(coordinates_frame, text="Click Specific Coordinates", variable=self.click_coordinates, command=self.toggle_coordinates).grid(column=0, row=0, padx=5, pady=5)
-        self.add_coord_button = tk.Button(coordinates_frame, text="Add Coordinate", command=self.add_coordinate, width=self.button_width.get(), height=self.button_height.get())
+    def create_coordinates_widgets(self, frame):
+        ttk.Checkbutton(frame, text="Click Specific Coordinates", variable=self.click_coordinates, command=self.toggle_coordinates).grid(column=0, row=0, padx=5, pady=5)
+        self.add_coord_button = tk.Button(frame, text="Add Coordinate", command=self.add_coordinate, width=self.button_width.get(), height=self.button_height.get())
         self.add_coord_button.grid(column=1, row=0, padx=5, pady=5)
         self.add_coord_button.config(state=tk.DISABLED)
 
-        self.coord_listbox = tk.Listbox(coordinates_frame, height=5)
+        self.coord_listbox = tk.Listbox(frame, height=5)
         self.coord_listbox.grid(column=0, row=1, columnspan=2, padx=5, pady=5, sticky=(tk.W, tk.E))
         self.coord_listbox.bind('<Double-1>', self.edit_coordinate)
 
-        # Buttons
-        button_frame = ttk.Frame(main_frame, padding="10")
-        button_frame.grid(column=0, row=3, padx=10, pady=10, sticky=(tk.W, tk.E))
-        self.start_button = tk.Button(button_frame, text="Start", command=self.start_autoclicker, width=self.button_width.get(), height=self.button_height.get())
+    def create_button_widgets(self, frame):
+        self.start_button = tk.Button(frame, text="Start", command=self.start_autoclicker, width=self.button_width.get(), height=self.button_height.get())
         self.start_button.grid(column=0, row=0, padx=10, pady=10)
-        self.stop_button = tk.Button(button_frame, text="Stop", command=self.stop_autoclicker, width=self.button_width.get(), height=self.button_height.get())
+        self.stop_button = tk.Button(frame, text="Stop", command=self.stop_autoclicker, width=self.button_width.get(), height=self.button_height.get())
         self.stop_button.grid(column=1, row=0, padx=10, pady=10)
         self.stop_button.config(state=tk.DISABLED)
 
-        self.keybind_button = tk.Button(button_frame, text="Keybind Settings", command=self.open_keybind_settings, width=self.button_width.get(), height=self.button_height.get())
+        self.keybind_button = tk.Button(frame, text="Keybind Settings", command=self.open_keybind_settings, width=self.button_width.get(), height=self.button_height.get())
         self.keybind_button.grid(column=0, row=1, padx=10, pady=10)
-        self.settings_button = tk.Button(button_frame, text="Settings", command=self.open_settings, width=self.button_width.get(), height=self.button_height.get())
+        self.settings_button = tk.Button(frame, text="Settings", command=self.open_settings, width=self.button_width.get(), height=self.button_height.get())
         self.settings_button.grid(column=1, row=1, padx=10, pady=10)
 
     def setup_hotkeys(self):
         keyboard.add_hotkey(self.keybind.get(), self.toggle_autoclicker)
 
     def apply_hotkeys(self):
-        # Unregister previous hotkeys
         keyboard.unhook_all_hotkeys()
         self.setup_hotkeys()
         print(f"Applied hotkey: {self.keybind.get()}")
@@ -134,16 +156,10 @@ class AutoClicker:
                     for coord in self.coordinates:
                         if not self.running:
                             break
-                        if self.click_mode.get() == 'single':
-                            pyautogui.click(x=coord[0], y=coord[1], button=self.click_type.get())
-                        else:
-                            pyautogui.doubleClick(x=coord[0], y=coord[1], button=self.click_type.get())
+                        self.perform_click(coord)
                         time.sleep(interval)
                 else:
-                    if self.click_mode.get() == 'single':
-                        pyautogui.click(button=self.click_type.get())
-                    else:
-                        pyautogui.doubleClick(button=self.click_type.get())
+                    self.perform_click()
                     time.sleep(interval)
 
                 clicks += 1
@@ -151,6 +167,18 @@ class AutoClicker:
                     self.stop_autoclicker()
         except Exception as e:
             print(f"An error occurred: {e}")
+
+    def perform_click(self, coord=None):
+        if coord:
+            if self.click_mode.get() == 'single':
+                pyautogui.click(x=coord[0], y=coord[1], button=self.click_type.get())
+            else:
+                pyautogui.doubleClick(x=coord[0], y=coord[1], button=self.click_type.get())
+        else:
+            if self.click_mode.get() == 'single':
+                pyautogui.click(button=self.click_type.get())
+            else:
+                pyautogui.doubleClick(button=self.click_type.get())
 
     def toggle_coordinates(self):
         if self.click_coordinates.get():
@@ -220,23 +248,26 @@ class AutoClicker:
         self.add_coord_button.config(width=self.button_width.get(), height=self.button_height.get())
 
     def load_settings(self):
-        if os.path.exists(self.settings_file):
-            with open(self.settings_file, 'r') as file:
-                settings = json.load(file)
-                self.interval_ms.set(settings.get('interval_ms', 100))
-                self.interval_s.set(settings.get('interval_s', 0))
-                self.interval_m.set(settings.get('interval_m', 0))
-                self.interval_h.set(settings.get('interval_h', 0))
-                self.keybind.set(settings.get('keybind', 'F6'))
-                self.click_type.set(settings.get('click_type', 'left'))
-                self.click_mode.set(settings.get('click_mode', 'single'))
-                self.click_coordinates.set(settings.get('click_coordinates', False))
-                self.coordinates = settings.get('coordinates', [])
-                self.click_until_stopped.set(settings.get('click_until_stopped', True))
-                self.specific_clicks.set(settings.get('specific_clicks', 10))
-                self.always_on_top.set(settings.get('always_on_top', False))
-                self.button_width.set(settings.get('button_width', 20))
-                self.button_height.set(settings.get('button_height', 2))
+        if os.path.exists(self.SETTINGS_FILE):
+            try:
+                with open(self.SETTINGS_FILE, 'r') as file:
+                    settings = json.load(file)
+                    self.interval_ms.set(settings.get('interval_ms', self.DEFAULT_INTERVAL_MS))
+                    self.interval_s.set(settings.get('interval_s', 0))
+                    self.interval_m.set(settings.get('interval_m', 0))
+                    self.interval_h.set(settings.get('interval_h', 0))
+                    self.keybind.set(settings.get('keybind', self.DEFAULT_KEYBIND))
+                    self.click_type.set(settings.get('click_type', self.DEFAULT_CLICK_TYPE))
+                    self.click_mode.set(settings.get('click_mode', self.DEFAULT_CLICK_MODE))
+                    self.click_coordinates.set(settings.get('click_coordinates', self.DEFAULT_COORDINATES))
+                    self.coordinates = settings.get('coordinates', [])
+                    self.click_until_stopped.set(settings.get('click_until_stopped', self.DEFAULT_UNTIL_STOPPED))
+                    self.specific_clicks.set(settings.get('specific_clicks', self.DEFAULT_SPECIFIC_CLICKS))
+                    self.always_on_top.set(settings.get('always_on_top', self.DEFAULT_ALWAYS_ON_TOP))
+                    self.button_width.set(settings.get('button_width', self.DEFAULT_BUTTON_WIDTH))
+                    self.button_height.set(settings.get('button_height', self.DEFAULT_BUTTON_HEIGHT))
+            except Exception as e:
+                print(f"Error loading settings: {e}")
 
     def save_settings(self):
         settings = {
@@ -255,12 +286,16 @@ class AutoClicker:
             'button_width': self.button_width.get(),
             'button_height': self.button_height.get()
         }
-        with open(self.settings_file, 'w') as file:
-            json.dump(settings, file)
+        try:
+            with open(self.SETTINGS_FILE, 'w') as file:
+                json.dump(settings, file)
+        except Exception as e:
+            print(f"Error saving settings: {e}")
 
     def on_closing(self):
         self.save_settings()
         self.root.destroy()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
